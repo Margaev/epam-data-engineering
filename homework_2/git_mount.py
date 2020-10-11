@@ -18,6 +18,13 @@ class Passthrough(Operations):
         path = os.path.join(self.root, partial)
         return path
 
+    @staticmethod
+    def _update_repo(full_path):
+        if not os.path.isdir(full_path):
+            full_path = os.path.dirname(full_path)
+        os.system(f'git -C "{full_path}" reset --hard origin')
+        os.system(f'git -C "{full_path}" pull')
+
     # Filesystem methods
     # ==================
 
@@ -29,7 +36,7 @@ class Passthrough(Operations):
 
     def readdir(self, path, fh):
         full_path = self._full_path(path)
-        os.system(f'git -C {full_path} reset --hard origin')
+        self._update_repo(full_path)
 
         dirents = ['.', '..']
         if os.path.isdir(full_path):
@@ -50,6 +57,7 @@ class Passthrough(Operations):
 
     def open(self, path, flags):
         full_path = self._full_path(path)
+        self._update_repo(full_path)
         return os.open(full_path, flags)
 
     def read(self, path, length, offset, fh):
