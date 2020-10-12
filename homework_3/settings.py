@@ -1,0 +1,5 @@
+DB_NAME = 'consumer_complaints'
+DB_USER = 'db_user'
+DB_PASSWORD = 'password'
+DB_HOST = 'localhost'
+TABLE_NAME = 'complaints'
