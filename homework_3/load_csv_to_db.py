@@ -1,9 +1,8 @@
-import pandas as pd
 import psycopg2
 from psycopg2 import sql
 from contextlib import closing
 
-from homework_3.settings import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, TABLE_NAME
+from settings import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, TABLE_NAME
 
 
 def create_table(cursor):
