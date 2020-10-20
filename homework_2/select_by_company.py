@@ -8,7 +8,7 @@ from settings import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, TABLE_NAME
 
 
 def get_products_list(cursor, company):
-    sql_query = sql.SQL(f'''select * from complaints c
+    sql_query = sql.SQL(f'''select * from {TABLE_NAME}
                         where company = '{company}' and state_name = (
                             select state_name from (
                                 select state_name, count(*) amount_of_complaints from complaints c 
