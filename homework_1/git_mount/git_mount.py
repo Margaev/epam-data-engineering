@@ -65,11 +65,11 @@ class Passthrough(Operations):
         return os.read(fh, length)
 
 
-def main(root, mountpoint):
-    FUSE(Passthrough(root), mountpoint, nothreads=True, foreground=True)
+def main():
+    if len(sys.argv) != 3:
+        print(f'usage: {sys.argv[0]} <link to git repository> <mountpoint>')
+        exit(1)
 
-
-if __name__ == '__main__':
     mo = re.search(r"/([a-zA-Z0-9_-]*)\.git", sys.argv[1])
     rep_dir = mo.group(1)
     rep_dir = os.path.join('repos', rep_dir)
@@ -80,4 +80,8 @@ if __name__ == '__main__':
             os.mkdir(rep_dir)
             os.system(f'git clone {sys.argv[1]} {rep_dir}')
 
-    main(rep_dir, sys.argv[2])
+    FUSE(Passthrough(rep_dir), mountpoint=sys.argv[2], nothreads=True, foreground=True)
+
+
+if __name__ == '__main__':
+    main()
