@@ -20,10 +20,10 @@ def get_duplicates(path):
         with open(file, 'rb') as f:
             # For every file calculate hash from its content
             file_hash = binascii.crc32(f.read())
-            # if file not in file_hashes, write to dict "file hash": filename
+            # If file not in file_hashes, write to it file_hash: filename
             if file_hash not in file_hashes:
                 file_hashes[file_hash] = file
-            # if file in file_hashes, write to result duplicates dict ("file name": "duplicate name")
+            # If file in file_hashes, append it to result duplicates dict
             else:
                 duplicates[file_hashes[file_hash]].append(file)
 
