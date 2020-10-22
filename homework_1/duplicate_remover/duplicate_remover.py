@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
-import filecmp
 from collections import defaultdict
 import os
 from os.path import join, abspath
 from sys import argv
+import binascii
 
 
 def get_duplicates(path):
     """
     Returns dict with keys as files and value as a list of their duplicates
     """
-    duplicates = defaultdict(list)
-    # collect all files with absolute path in given directory (including subdirectories)
+    # Collect all files with absolute path in given directory (including subdirectories)
     file_list = [abspath(join(dir_name, f)) for dir_name, _, files in os.walk(path) for f in files]
-    checked = set()
 
-    # Iterating through the file list skipping over already checked files
+    duplicates = defaultdict(list)
+    file_hashes = dict()
+
     for file in file_list:
-        checked.add(file)
-        for other_file in filter(lambda x: x not in checked, file_list):
-            if filecmp.cmp(file, other_file):
-                duplicates[file].append(other_file)
-                checked.add(other_file)
+        with open(file, 'rb') as f:
+            # For every file calculate hash from its content
+            file_hash = binascii.crc32(f.read())
+            # if file not in file_hashes, write to dict "file hash": filename
+            if file_hash not in file_hashes:
+                file_hashes[file_hash] = file
+            # if file in file_hashes, write to result duplicates dict ("file name": "duplicate name")
+            else:
+                duplicates[file_hashes[file_hash]].append(file)
 
     return duplicates
 
