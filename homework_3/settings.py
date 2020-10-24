@@ -1,0 +1,5 @@
+DB_NAME = 'movie_metadata'
+DB_USER = 'db_user'
+DB_PASSWORD = 'password'
+DB_HOST = 'localhost'
+TABLE_NAME = 'movie_metadata'
