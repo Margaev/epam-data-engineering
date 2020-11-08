@@ -1,3 +1,5 @@
 venv
 *.csv
 homework_1/git_mount/repos
+*.gz
+.env
