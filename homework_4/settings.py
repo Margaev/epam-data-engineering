@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+# Инициализация переменных их .env
 IMAGE_NAME = 'map_reduce_docker'
 load_dotenv('.env')
 try:
@@ -18,7 +19,6 @@ try:
         print('STARTING_PORT must be positive integer')
         exit(1)
 except KeyError:
-    print('You need to add this to your .env file: MOUNT_DIR=<path to mount point for docker>')
     print('You need to add this to your .env file: NUM_OF_CONTAINERS=<number of containers>')
     exit(1)
 except ValueError:

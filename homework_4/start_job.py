@@ -10,6 +10,7 @@ failed_tasks = defaultdict(list)
 
 
 def get_files_queue(directory_name):
+    # Возвращает очередь из файлов в директории directory_name
     file_list = os.listdir(directory_name)
     q = Queue()
     for file in file_list:
@@ -19,6 +20,7 @@ def get_files_queue(directory_name):
 
 
 def get_urls():
+    # Возвращает список адресов контейнеров
     urls = []
 
     for i in range(NUM_OF_CONTAINERS):
@@ -28,9 +30,11 @@ def get_urls():
 
 
 def distribute_files(files_queue, data_directory, urls):
+    # Возвращает список запросов, которые нужно послать асинхронно на каждый контейнер
     rs = []
 
     for i in range(NUM_OF_CONTAINERS):
+        # Если в очереди ещё есть файлы, добавить новый запрос
         if not files_queue.empty():
             file = files_queue.get()
             files = {file: open(os.path.abspath(os.path.join(data_directory, file)), 'rb')}
@@ -42,6 +46,7 @@ def distribute_files(files_queue, data_directory, urls):
 
 
 def reduce_results(responses):
+    # Складывает ответы всех запросов с кодом 200 и возвращает сумму
     result = 0
     for r in responses:
         if r is not None and r.ok:
@@ -52,6 +57,7 @@ def reduce_results(responses):
 
 
 def exception_handler(request, exception):
+    # Обработка исключений при отправке запросов на контейнеры
     failed_tasks[request.url].extend(request.kwargs['files'].keys())
 
 
@@ -61,18 +67,13 @@ def main():
         exit(1)
 
     data_directory = argv[1]
-
     files_queue = get_files_queue(data_directory)
-
     urls = get_urls()
-
     responses = []
 
     while not files_queue.empty():
         rs = distribute_files(files_queue, data_directory, urls)
-
         current_batch_responses = grequests.map(rs, exception_handler=exception_handler)
-
         responses.extend(current_batch_responses)
 
     result = reduce_results(responses)

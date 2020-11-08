@@ -8,6 +8,8 @@ containers = []
 
 
 def run_containers(client, n):
+    # Запустить n контейнеров, на последовательности портов,
+    # начиная с STARTING_PORT и заканчивая STARTING_PORT + NUM_OF_CONTAINERS
     for i in range(n):
         port = STARTING_PORT + i
         env = {
@@ -27,6 +29,7 @@ def run_containers(client, n):
 
 
 def signal_handler(sig, frame):
+    # Обработка ctrl + C, остановка всех запущенных контейнеров
     print('\nStopping containers')
     for c in containers:
         print(f'Stopping container with id {c.id}')
@@ -41,6 +44,7 @@ def main():
     client = docker.from_env()
     run_containers(client, NUM_OF_CONTAINERS)
 
+    # Ожидание сочетания клавиш ctrl + C
     signal.pause()
 
 

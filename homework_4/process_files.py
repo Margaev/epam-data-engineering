@@ -12,6 +12,8 @@ app = Flask(__name__)
 def sum_bytes():
     sums_of_bytes = {}
 
+    # Для каждого файла в request.files создать временный файл, распаковать его
+    # и добавить в ответ в формате <имя файла>: <сумма ненулевых байтов>
     for filename, file in request.files.items():
         temp = NamedTemporaryFile()
         temp.write(file.read())
@@ -19,4 +21,5 @@ def sum_bytes():
         with gzip.open(temp.name, 'rb') as f:
             sums_of_bytes[filename] = sum(f.read())
 
+    # Вернуть ответ в формате json
     return jsonify(sums_of_bytes)
