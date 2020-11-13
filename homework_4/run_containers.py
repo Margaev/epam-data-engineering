@@ -20,7 +20,8 @@ def run_containers(client, n):
             image=IMAGE_NAME,
             ports={f'{port}/tcp': port},
             environment=env,
-            detach=True
+            detach=True,
+            mem_limit='1g'
          )
 
         print(f'Running container with id {c.id}')
