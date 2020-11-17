@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 import gzip
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryFile
 from collections import defaultdict
 
 load_dotenv('.env')
@@ -19,17 +19,19 @@ def read_in_chunks(file):
 
 @app.route('/', methods=['POST'])
 def sum_bytes():
-    sums_of_bytes = defaultdict(int)
+    bytes_counts = defaultdict(int)
 
     # Для каждого файла в request.files создать временный файл, распаковать его
-    # и добавить в ответ в формате <имя файла>: <сумма ненулевых байтов>
+    # и добавить в ответ в формате <имя файла>: <количество ненулевых байтов>
     for filename, file in request.files.items():
-        temp = NamedTemporaryFile()
+        temp = TemporaryFile()
         temp.write(file.read())
+        temp.seek(0)
 
-        with gzip.open(temp.name, 'rb') as f:
+        with gzip.GzipFile(mode='rb', fileobj=temp) as f:
             for chunk in read_in_chunks(f):
-                sums_of_bytes[filename] += sum(chunk)
+                not_null_bytes = list(filter(lambda x: x != 0, chunk))
+                bytes_counts[filename] += len(not_null_bytes)
 
     # Вернуть ответ в формате json
-    return jsonify(sums_of_bytes)
+    return jsonify(bytes_counts)
