@@ -126,7 +126,7 @@ def main(n):
 
 if __name__ == '__main__':
     execution_time_list = []
-    r = range(1, 5)
+    r = range(1, 8)
 
     for i in r:
         if os.path.exists('result.csv'):
