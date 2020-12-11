@@ -1,0 +1,131 @@
+version: "2.1"
+services:
+  zookeeper:
+    image: zookeeper:3.6.2
+    container_name: zookeeper
+    ports:
+      - 2181:2181
+      - 8080:8080
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOO_PORT_NUMBER: 2181
+    networks:
+      - kafka-cluster-tier
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-cluster-tier
+    ports:
+      - 9092:9092
+    env_file:
+      - kafka.env
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: INSIDE://:9091,OUTSIDE://:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9091,OUTSIDE://kafka:9092
+
+  kafka-r2:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-r2
+    hostname: kafka-r2
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-cluster-tier
+    ports:
+      - 19092:19092
+    env_file:
+      - kafka.env
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENERS: INSIDE://:19091,OUTSIDE://:19092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:19091,OUTSIDE://kafka-r2:19092
+
+  kafka-r3:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-r3
+    hostname: kafka-r3
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-cluster-tier
+    ports:
+      - 29092:29092
+    env_file:
+      - kafka.env
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENERS: INSIDE://:29091,OUTSIDE://:29092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:29091,OUTSIDE://kafka-r3:29092
+
+#  zoo-navigator:
+#    image: elkozmon/zoonavigator:latest
+#    restart: unless-stopped
+#    container_name: zoo-navigator
+#    ports:
+#      - 9000:9000
+#    networks:
+#      - kafka-cluster-tier
+#    environment:
+#      HTTP_PORT: 9000
+#      AUTO_CONNECT_CONNECTION_STRING: zookeeper:2181
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:5.4.3
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+      - kafka-r2
+      - kafka-r3
+    ports:
+      - 8083:8083
+    networks:
+      - kafka-cluster-tier
+    environment:
+      CONNECT_REST_PORT: 8083
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_GROUP_ID: de-kafka-connect-group
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_CONFIG_STORAGE_TOPIC: de-connect-config
+      CONNECT_OFFSET_STORAGE_TOPIC: de-connect-offset
+      CONNECT_STATUS_STORAGE_TOPIC: de-connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+  postgres:
+    image: debezium/postgres
+    container_name: postgres
+    networks:
+      - kafka-cluster-tier
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data_generator:
+    build: ./data_generator
+    container_name: data_generator
+    networks:
+      - kafka-cluster-tier
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  kafka-cluster-tier:
+    driver: bridge
