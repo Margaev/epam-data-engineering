@@ -18,6 +18,7 @@ DB_HOST = 'postgres'
 
 def create_table(cur):
     sql_query = sql.SQL(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
+                            id serial,
                             name text,
                             customer_id int,
                             type text,

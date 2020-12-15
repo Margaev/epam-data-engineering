@@ -106,7 +106,7 @@ services:
     networks:
       - kafka-cluster-tier
     ports:
-      - 5432:5432
+      - 5444:5432
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -125,6 +125,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  consumer_producer:
+    build: ./python_consumer_producer
+    container_name: python_consumer_producer
+    networks:
+      - kafka-cluster-tier
+    depends_on:
+      - kafka
+      - kafka-r2
+      - kafka-r3
 
 networks:
   kafka-cluster-tier:
