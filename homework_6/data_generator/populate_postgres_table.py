@@ -18,13 +18,6 @@ DB_HOST = 'postgres'
 
 
 def create_table(cur):
-    # sql_query = sql.SQL(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
-    #                         id serial,
-    #                         name text,
-    #                         customer_id int,
-    #                         type text,
-    #                         tstamp timestamp
-    #                     ) ;''')
     sql_query = sql.SQL(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
                             id serial,
                             name text,
@@ -50,7 +43,6 @@ def insert(cur, _name, _customer_id, _action_type, _timestamp):
 with closing(psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                               password=DB_PASSWORD, host=DB_HOST)) as conn:
     conn.autocommit = True
-    # conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
     with conn.cursor() as cursor:
         create_table(cursor)
@@ -59,7 +51,6 @@ with closing(psycopg2.connect(dbname=DB_NAME, user=DB_USER,
             name = fake.name()
             customer_id = random.choice(range(10))
             action_type = random.choice(['1', '2', '3', '4'])
-            # timestamp = fake.date_time_this_month()
             timestamp = datetime.datetime.now()
             insert(cursor, name, customer_id, action_type, timestamp)
             time.sleep(5)

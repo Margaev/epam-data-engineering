@@ -5,4 +5,4 @@ curl http://localhost:9200/de-enriched-data/_search | jq "."
 curl http://localhost:9200/de-enriched-data/_count | jq "."
 
 # kafka
-kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic postgres_customer_actions
+kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic de-source-data

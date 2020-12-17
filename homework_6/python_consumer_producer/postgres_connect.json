@@ -1,13 +1,18 @@
 {
   "name": "postgres-source",
   "config": {
-    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
-    "tasks.max": 1,
-    "connection.url": "jdbc:postgresql://postgres:5432/postgres?user=postgres&password=postgres",
-    "connection.user": "postgres",
-    "connection.password": "postgres",
-    "topics": "postgres_customer_actions",
-    "topic.prefix": "postgres_",
-    "mode":"bulk"
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname" : "postgres",
+    "database.server.name": "postgres",
+    "transforms": "Reroute",
+    "transforms.Reroute.type": "io.debezium.transforms.ByLogicalTableRouter",
+    "transforms.Reroute.topic.regex": "(.*)customer_id_(.*)",
+    "transforms.Reroute.topic.replacement": "de-source-data",
+    "transforms.Reroute.key.field.name": "customer_id",
+    "transforms.Reroute.key.enforce.uniqueness": "false"
   }
 }
