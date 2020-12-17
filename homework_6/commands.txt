@@ -1,5 +1,8 @@
-curl -XPOST http://localhost:8083/connectors -d @postgres_connector.json -H "Content-Type: application/json" | jq
+curl -XPOST http://localhost:8083/connectors -d @python_consumer_producer/postgres_connect.json -H "Content-Type: application/json" | jq
 
 # es commaands
 curl http://localhost:9200/de-enriched-data/_search | jq "."
 curl http://localhost:9200/de-enriched-data/_count | jq "."
+
+# kafka
+kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic postgres_customer_actions

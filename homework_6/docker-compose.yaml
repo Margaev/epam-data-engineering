@@ -101,7 +101,7 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
 
   postgres:
-    image: debezium/postgres
+    image: debezium/postgres:12-alpine
     container_name: postgres
     networks:
       - kafka-cluster-tier

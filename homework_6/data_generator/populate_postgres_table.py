@@ -5,6 +5,7 @@ from contextlib import closing
 
 import psycopg2
 from psycopg2 import sql
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import faker
 
 fake = faker.Faker()
@@ -17,14 +18,24 @@ DB_HOST = 'postgres'
 
 
 def create_table(cur):
+    # sql_query = sql.SQL(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
+    #                         id serial,
+    #                         name text,
+    #                         customer_id int,
+    #                         type text,
+    #                         tstamp timestamp
+    #                     ) ;''')
     sql_query = sql.SQL(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
                             id serial,
                             name text,
                             customer_id int,
                             type text,
                             tstamp timestamp
-                        )''')
+                        ) PARTITION BY LIST (customer_id);''')
     cur.execute(sql_query)
+    for i in range(10):
+        sql_query = sql.SQL(f'CREATE TABLE customer_id_{i} PARTITION OF {TABLE_NAME} FOR VALUES IN ({i});')
+        cur.execute(sql_query)
 
 
 def insert(cur, _name, _customer_id, _action_type, _timestamp):
@@ -39,6 +50,8 @@ def insert(cur, _name, _customer_id, _action_type, _timestamp):
 with closing(psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                               password=DB_PASSWORD, host=DB_HOST)) as conn:
     conn.autocommit = True
+    # conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
     with conn.cursor() as cursor:
         create_table(cursor)
 
@@ -49,4 +62,4 @@ with closing(psycopg2.connect(dbname=DB_NAME, user=DB_USER,
             # timestamp = fake.date_time_this_month()
             timestamp = datetime.datetime.now()
             insert(cursor, name, customer_id, action_type, timestamp)
-            time.sleep(1)
+            time.sleep(5)

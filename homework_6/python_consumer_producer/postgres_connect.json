@@ -6,7 +6,7 @@
     "connection.url": "jdbc:postgresql://postgres:5432/postgres?user=postgres&password=postgres",
     "connection.user": "postgres",
     "connection.password": "postgres",
-    "topics": "de-source-data",
+    "topics": "postgres_customer_actions",
     "topic.prefix": "postgres_",
     "mode":"bulk"
   }
