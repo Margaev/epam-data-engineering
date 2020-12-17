@@ -1,0 +1,15 @@
+{
+  "name": "es-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+    "tasks.max": "1",
+    "topics": "de-enriched-data",
+    "key.ignore": "true",
+    "connection.url": "http://elasticsearch:9200",
+    "type.name": "kafka-connect",
+    "schema.ignore": "true",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "name": "es-sink"
+  }
+}

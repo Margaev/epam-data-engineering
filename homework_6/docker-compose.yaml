@@ -75,9 +75,9 @@ services:
 #      HTTP_PORT: 9000
 #      AUTO_CONNECT_CONNECTION_STRING: zookeeper:2181
 
-  kafka-connect:
+  kafka-connect-source:
     image: confluentinc/cp-kafka-connect:5.4.3
-    container_name: kafka-connect
+    container_name: kafka-connect-source
     depends_on:
       - kafka
       - kafka-r2
@@ -90,11 +90,11 @@ services:
       CONNECT_REST_PORT: 8083
       CONNECT_BOOTSTRAP_SERVERS: kafka:9092
       CONNECT_REST_ADVERTISED_HOST_NAME: localhost
-      CONNECT_GROUP_ID: de-kafka-connect-group
+      CONNECT_GROUP_ID: de-kafka-connect-group-1
       CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
-      CONNECT_CONFIG_STORAGE_TOPIC: de-connect-config
-      CONNECT_OFFSET_STORAGE_TOPIC: de-connect-offset
-      CONNECT_STATUS_STORAGE_TOPIC: de-connect-status
+      CONNECT_CONFIG_STORAGE_TOPIC: de-connect-source-config
+      CONNECT_OFFSET_STORAGE_TOPIC: de-connect-source-offset
+      CONNECT_STATUS_STORAGE_TOPIC: de-connect-source-status
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
@@ -117,6 +117,44 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka-connect-sink:
+    image: confluentinc/cp-kafka-connect:5.4.3
+    container_name: kafka-connect-sink
+    depends_on:
+      - kafka
+      - kafka-r2
+      - kafka-r3
+    ports:
+      - 8084:8084
+    networks:
+      - kafka-cluster-tier
+    environment:
+      CONNECT_REST_PORT: 8084
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_GROUP_ID: de-kafka-connect-group-2
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_CONFIG_STORAGE_TOPIC: de-connect-sink-config
+      CONNECT_OFFSET_STORAGE_TOPIC: de-connect-sink-offset
+      CONNECT_STATUS_STORAGE_TOPIC: de-connect-sink-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+  es:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+    ports:
+      - "9200:9200"
+    volumes:
+      - esData:/usr/share/elasticsearch/data
+    networks:
+      - kafka-cluster-tier
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms32m"
+      "discovery.type": "single-node"
+
   data_generator:
     build: ./data_generator
     container_name: data_generator
@@ -132,10 +170,14 @@ services:
     networks:
       - kafka-cluster-tier
     depends_on:
-      - kafka
-      - kafka-r2
-      - kafka-r3
+      kafka-connect-source:
+        condition: service_healthy
+      kafka-connect-sink:
+        condition: service_healthy
 
 networks:
   kafka-cluster-tier:
     driver: bridge
+
+volumes:
+  esData: { }
