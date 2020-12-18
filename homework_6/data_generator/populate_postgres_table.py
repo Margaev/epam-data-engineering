@@ -53,4 +53,4 @@ with closing(psycopg2.connect(dbname=DB_NAME, user=DB_USER,
             action_type = random.choice(['1', '2', '3', '4'])
             timestamp = datetime.datetime.now()
             insert(cursor, name, customer_id, action_type, timestamp)
-            time.sleep(5)
+            time.sleep(2)

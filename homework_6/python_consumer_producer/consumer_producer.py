@@ -6,8 +6,8 @@ from kafka import KafkaProducer, KafkaConsumer
 fake = faker.Faker()
 
 consumer = KafkaConsumer('de-source-data',
-                         bootstrap_servers=['kafka:9092', 'kafka-r2:9092', 'kafka-r3:9092'])
-producer = KafkaProducer(bootstrap_servers=['kafka:9092', 'kafka-r2:9092', 'kafka-r3:9092'])
+                         bootstrap_servers=['kafka-1:9092', 'kafka-2:9092', 'kafka-3:9092'])
+producer = KafkaProducer(bootstrap_servers=['kafka-1:9092', 'kafka-2:9092', 'kafka-3:9092'])
 
 for msg in consumer:
     json_data = json.loads(msg.value)

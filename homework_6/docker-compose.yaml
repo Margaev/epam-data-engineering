@@ -12,10 +12,10 @@ services:
     networks:
       - kafka-cluster-tier
 
-  kafka:
+  kafka-1:
     image: wurstmeister/kafka:2.13-2.6.0
-    container_name: kafka
-    hostname: kafka
+    container_name: kafka-1
+    hostname: kafka-1
     depends_on:
       - zookeeper
     networks:
@@ -27,12 +27,12 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENERS: INSIDE://:9091,OUTSIDE://:9092
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9091,OUTSIDE://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9091,OUTSIDE://kafka-1:9092
 
-  kafka-r2:
+  kafka-2:
     image: wurstmeister/kafka:2.13-2.6.0
-    container_name: kafka-r2
-    hostname: kafka-r2
+    container_name: kafka-2
+    hostname: kafka-2
     depends_on:
       - zookeeper
     networks:
@@ -44,12 +44,12 @@ services:
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_LISTENERS: INSIDE://:19091,OUTSIDE://:19092
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://:19091,OUTSIDE://kafka-r2:19092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:19091,OUTSIDE://kafka-2:19092
 
-  kafka-r3:
+  kafka-3:
     image: wurstmeister/kafka:2.13-2.6.0
-    container_name: kafka-r3
-    hostname: kafka-r3
+    container_name: kafka-3
+    hostname: kafka-3
     depends_on:
       - zookeeper
     networks:
@@ -61,15 +61,15 @@ services:
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_LISTENERS: INSIDE://:29091,OUTSIDE://:29092
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://:29091,OUTSIDE://kafka-r3:29092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:29091,OUTSIDE://kafka-3:29092
 
   kafka-connect-source:
     image: debezium/connect
     container_name: kafka-connect-source
     depends_on:
-      - kafka
-      - kafka-r2
-      - kafka-r3
+      - kafka-1
+      - kafka-2
+      - kafka-3
     ports:
       - 8083:8083
     networks:
@@ -81,7 +81,7 @@ services:
       retries: 5
     environment:
       REST_PORT: 8083
-      BOOTSTRAP_SERVERS: kafka:9092
+      BOOTSTRAP_SERVERS: kafka-1:9092
       REST_ADVERTISED_HOST_NAME: localhost
       GROUP_ID: de-kafka-connect-group-1
       PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
@@ -114,16 +114,16 @@ services:
     image: confluentinc/cp-kafka-connect:5.4.3
     container_name: kafka-connect-sink
     depends_on:
-      - kafka
-      - kafka-r2
-      - kafka-r3
+      - kafka-1
+      - kafka-2
+      - kafka-3
     ports:
       - 8084:8084
     networks:
       - kafka-cluster-tier
     environment:
       CONNECT_REST_PORT: 8084
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_BOOTSTRAP_SERVERS: kafka-1:9092
       CONNECT_REST_ADVERTISED_HOST_NAME: localhost
       CONNECT_GROUP_ID: de-kafka-connect-group-2
       CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
