@@ -87,10 +87,9 @@ def write_df_to_db(df, object_key):
 
 
 def lambda_handler(event, context):
-    import json
-    logger.info(json.dumps(event, indent=4))
-
     if 'Records' in event:
+        logger.info('Task triggered by s3 bucket')
+
         for record in event['Records']:
             bucket_name = record['s3']['bucket']['name']
             object_key = record['s3']['object']['key']
@@ -103,6 +102,8 @@ def lambda_handler(event, context):
         return {'status': 'ok'}
 
     else:
+        logger.info('Task triggered by schedule')
+
         s3 = boto3.client('s3')
 
         for obj in s3.list_objects(Bucket=INPUT_BUCKET_NAME, Prefix='input-data/')['Contents']:
