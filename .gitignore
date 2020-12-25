@@ -3,3 +3,5 @@ venv
 homework_1/git_mount/repos
 *.gz
 .env
+/homework_7/package
+/homework_7/lambda.zip
