@@ -12,6 +12,7 @@ import psycopg2
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+INPUT_BUCKET_NAME = 'margaev-csv-test-data'
 OUTPUT_BUCKET_NAME = 'margaev-output-data'
 db_host = os.environ['DB_HOST']
 db_name = os.environ['DB_NAME']
@@ -86,13 +87,33 @@ def write_df_to_db(df, object_key):
 
 
 def lambda_handler(event, context):
-    for record in event['Records']:
-        bucket_name = record['s3']['bucket']['name']
-        object_key = record['s3']['object']['key']
+    import json
+    logger.info(json.dumps(event, indent=4))
 
-        df = read_csv_from_s3(bucket_name, object_key)
-        df_filtered = filter_df(df)
-        write_df_to_s3(df_filtered, object_key)
-        write_df_to_db(df_filtered, object_key)
-        
-    return {'status': 'ok'}
+    if 'Records' in event:
+        for record in event['Records']:
+            bucket_name = record['s3']['bucket']['name']
+            object_key = record['s3']['object']['key']
+
+            df = read_csv_from_s3(bucket_name, object_key)
+            df_filtered = filter_df(df)
+            write_df_to_s3(df_filtered, object_key)
+            write_df_to_db(df_filtered, object_key)
+
+        return {'status': 'ok'}
+
+    else:
+        s3 = boto3.client('s3')
+
+        for obj in s3.list_objects(Bucket=INPUT_BUCKET_NAME, Prefix='input-data/')['Contents']:
+            object_key = obj['Key']
+
+            if object_key == 'input-data/':
+                continue
+
+            df = read_csv_from_s3(INPUT_BUCKET_NAME, object_key)
+            df_filtered = filter_df(df)
+            write_df_to_s3(df_filtered, object_key)
+            write_df_to_db(df_filtered, object_key)
+
+        return {'status': 'ok'}
