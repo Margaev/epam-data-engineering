@@ -20,6 +20,8 @@ db_password = os.environ['DB_PASSWORD']
 
 
 def read_csv_from_s3(bucket_name, object_key):
+    logger.info(f'Reading file "{object_key}" from s3 input bucket "{bucket_name}"')
+
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=bucket_name, Key=object_key)
     
@@ -29,6 +31,8 @@ def read_csv_from_s3(bucket_name, object_key):
 
 
 def filter_df(df):
+    logger.info(f'Filtering dataset')
+
     df = df[df['Year'] >= 2015]
     return df
 
