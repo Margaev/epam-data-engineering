@@ -12,4 +12,4 @@ unzip -o pyarrow-2.0.0-cp38-cp38-manylinux1_x86_64.whl -d ./package
 rm -r *.whl *.dist-info __pycache__
 cp lambda_function.py ./package
 cd package && zip -r ../lambda.zip . && cd ..
-aws lambda update-function-code --function-name process_data_from_s3 --zip-file fileb://lambda.zip
+#aws lambda update-function-code --function-name process_data_from_s3 --zip-file fileb://lambda.zip

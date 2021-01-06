@@ -5,3 +5,4 @@ homework_1/git_mount/repos
 .env
 /homework_7/package
 /homework_7/lambda.zip
+/homework_7/tf_deploy/terraform.tfvars

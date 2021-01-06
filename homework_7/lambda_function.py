@@ -12,12 +12,12 @@ import psycopg2
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-INPUT_BUCKET_NAME = 'margaev-csv-test-data'
-OUTPUT_BUCKET_NAME = 'margaev-output-data'
-db_host = os.environ['DB_HOST']
-db_name = os.environ['DB_NAME']
-db_username = os.environ['DB_USERNAME']
-db_password = os.environ['DB_PASSWORD']
+INPUT_BUCKET_NAME = os.environ['INPUT_BUCKET_NAME']
+OUTPUT_BUCKET_NAME = os.environ['OUTPUT_BUCKET_NAME']
+DB_HOST = os.environ['DB_HOST']
+DB_NAME = os.environ['DB_NAME']
+DB_USERNAME = os.environ['DB_USERNAME']
+DB_PASSWORD = os.environ['DB_PASSWORD']
 
 
 def read_csv_from_s3(bucket_name, object_key):
@@ -58,7 +58,7 @@ def write_df_to_db(df, object_key):
     logger.info(f'Trying to connect to RDS PostgreSQL instance')
 
     try:
-        conn = psycopg2.connect(host=db_host, user=db_username, password=db_password, dbname=db_name)
+        conn = psycopg2.connect(host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, dbname=DB_NAME)
     except psycopg2.Error as e:
         logger.error("ERROR: Unexpected error: Could not connect to PostgreSQL instance.")
         logger.error(e)
