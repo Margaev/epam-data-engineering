@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "input_bucket" {
-  bucket = "margaev-input-data"
+  bucket = var.input_bucket
   acl = "private"
   force_destroy = "true"
 
@@ -24,7 +24,7 @@ resource "aws_s3_bucket" "input_bucket" {
 }
 
 resource "aws_s3_bucket" "output_bucket" {
-  bucket = "margaev-output-data"
+  bucket = var.output_bucket
   acl = "private"
   force_destroy = "true"
 
