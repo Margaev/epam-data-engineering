@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import boto3
 import psycopg2
+from io import BytesIO
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -45,13 +46,14 @@ def write_df_to_s3(df, object_key):
     logger.info(f'Writing file "{filename}" to s3 output bucket "{OUTPUT_BUCKET_NAME}"')
 
     parquet_table = pa.Table.from_pandas(df)
-    pq.write_table(parquet_table, f'/tmp/{filename}')
+    file = BytesIO()
+    pq.write_table(parquet_table, file)
+    file.seek(0)
 
-    with open(f'/tmp/{filename}', 'rb') as f:
-        s3 = boto3.client('s3')
-        response = s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Body=f, Key=output_file_key)
+    s3 = boto3.client('s3')
+    response = s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Body=file.read(), Key=output_file_key)
 
-        logger.info(response)
+    logger.info(response)
 
 
 def write_df_to_db(df, object_key):
@@ -76,12 +78,12 @@ def write_df_to_db(df, object_key):
                                                          year int,
                                                          genre text)""")
 
-        filename = object_key.split("/")[-1]
-        df.to_csv(f'/tmp/{filename}', header=False)
+        tmp_file = StringIO()
+        df.to_csv(tmp_file, header=False)
+        tmp_file.seek(0)
 
         logger.info(f'Writing to RDS PostgreSQL instance')
-        with open(f'/tmp/{filename}', 'r') as f:
-            cur.copy_expert(f"""COPY books FROM STDIN WITH (FORMAT CSV)""", f)
+        cur.copy_expert(f"""COPY books FROM STDIN WITH (FORMAT CSV)""", tmp_file)
 
     conn.commit()
 
