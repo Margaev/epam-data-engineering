@@ -1,12 +1,9 @@
 import os
-import sys
 import logging
 from io import StringIO
 from io import BytesIO
 
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 import boto3
 import psycopg2
 
@@ -45,9 +42,8 @@ def write_df_to_s3(df, object_key):
 
     logger.info(f'Writing file "{filename}" to s3 output bucket "{OUTPUT_BUCKET_NAME}"')
 
-    parquet_table = pa.Table.from_pandas(df)
     file = BytesIO()
-    pq.write_table(parquet_table, file)
+    df.to_parquet(file)
     file.seek(0)
 
     s3 = boto3.client('s3')
@@ -56,37 +52,38 @@ def write_df_to_s3(df, object_key):
     logger.info(response)
 
 
-def write_df_to_db(df, object_key):
+def write_df_to_db(df):
     logger.info(f'Trying to connect to RDS PostgreSQL instance')
 
     try:
         conn = psycopg2.connect(host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, dbname=DB_NAME)
-    except psycopg2.Error as e:
-        logger.error("ERROR: Unexpected error: Could not connect to PostgreSQL instance.")
-        logger.error(e)
-        sys.exit()
 
-    logger.info("SUCCESS: Connection to RDS PostgreSQL instance succeeded")
+        logger.info("SUCCESS: Connection to RDS PostgreSQL instance succeeded")
 
-    with conn.cursor() as cur:
-        cur.execute("""create table if not exists books (id int,
-                                                         name  text,
-                                                         author text,
-                                                         user_rating real,
-                                                         reviews int,
-                                                         price real,
-                                                         year int,
-                                                         genre text)""")
+        with conn.cursor() as cur:
+            cur.execute("""create table if not exists books (
+                               id int,
+                               name  text,
+                               author text,
+                               user_rating real,
+                               reviews int,
+                               price real,
+                               year int,
+                               genre text
+                            )""")
 
-        tmp_file = StringIO()
-        df.to_csv(tmp_file, header=False)
-        tmp_file.seek(0)
+            tmp_file = StringIO()
+            df.to_csv(tmp_file, header=False)
+            tmp_file.seek(0)
 
-        logger.info(f'Writing to RDS PostgreSQL instance')
+            logger.info(f'Writing to RDS PostgreSQL instance')
 
-        cur.copy_expert(f"""COPY books FROM STDIN WITH (FORMAT CSV)""", tmp_file)
+            cur.copy_expert(f"""COPY books FROM STDIN WITH (FORMAT CSV)""", tmp_file)
 
-    conn.commit()
+        conn.commit()
+
+    except psycopg2.Error:
+        logger.exception("ERROR: Unexpected error: Could not connect to PostgreSQL instance.")
 
 
 def lambda_handler(event, context):
@@ -100,7 +97,7 @@ def lambda_handler(event, context):
             df = read_csv_from_s3(bucket_name, object_key)
             df_filtered = filter_df(df)
             write_df_to_s3(df_filtered, object_key)
-            write_df_to_db(df_filtered, object_key)
+            write_df_to_db(df_filtered)
 
         return {'status': 'ok'}
 
@@ -118,6 +115,6 @@ def lambda_handler(event, context):
             df = read_csv_from_s3(INPUT_BUCKET_NAME, object_key)
             df_filtered = filter_df(df)
             write_df_to_s3(df_filtered, object_key)
-            write_df_to_db(df_filtered, object_key)
+            write_df_to_db(df_filtered)
 
         return {'status': 'ok'}
