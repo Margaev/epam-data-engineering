@@ -2,13 +2,13 @@ import os
 import sys
 import logging
 from io import StringIO
+from io import BytesIO
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import boto3
 import psycopg2
-from io import BytesIO
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -83,6 +83,7 @@ def write_df_to_db(df, object_key):
         tmp_file.seek(0)
 
         logger.info(f'Writing to RDS PostgreSQL instance')
+
         cur.copy_expert(f"""COPY books FROM STDIN WITH (FORMAT CSV)""", tmp_file)
 
     conn.commit()
