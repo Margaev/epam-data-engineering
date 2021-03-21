@@ -3,6 +3,6 @@ venv
 python_hw/git_mount/repos
 *.gz
 .env
-/aws_hw/package
+/aws_hw/lambda_layer
 /aws_hw/lambda.zip
 /aws_hw/tf_deploy/terraform.tfvars

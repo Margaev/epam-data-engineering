@@ -9,6 +9,12 @@ resource "aws_iam_role" "lambda_role" {
   assume_role_policy = file("iam/lambda_assume_policy.json")
 }
 
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_dir = "../lambda"
+  output_path = "../lambda.zip"
+}
+
 resource "aws_lambda_function" "lambda" {
   filename = "../lambda.zip"
   function_name = "lambda_function"
@@ -16,9 +22,9 @@ resource "aws_lambda_function" "lambda" {
   handler = "lambda_function.lambda_handler"
   timeout = 180
 
-  source_code_hash = filebase64sha256("../lambda.zip")
-
   runtime = "python3.8"
+
+  layers = [aws_lambda_layer_version.lambda_layer.arn]
 
   environment {
     variables = {
@@ -30,6 +36,14 @@ resource "aws_lambda_function" "lambda" {
       DB_PASSWORD = var.db_password
     }
   }
+}
+
+resource "aws_lambda_layer_version" "lambda_layer" {
+  layer_name = "lambda_layer"
+  s3_bucket = var.lambda_libs_bucket
+  s3_key = var.lambda_layer_zip_name
+  compatible_runtimes = ["python3.8"]
+  depends_on = [aws_s3_bucket.lambda_libs_bucket]
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
@@ -47,7 +61,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     lambda_function_arn = aws_lambda_function.lambda.arn
     events = [
       "s3:ObjectCreated:*"]
-    filter_prefix = "input-data/"
     filter_suffix = ".csv"
   }
 

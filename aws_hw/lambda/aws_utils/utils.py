@@ -23,7 +23,7 @@ def read_csv_from_s3(bucket_name, object_key):
 
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=bucket_name, Key=object_key)
-    
+
     file_content = StringIO(response['Body'].read().decode('utf-8'))
     df = pd.read_csv(file_content)
     return df
@@ -84,37 +84,3 @@ def write_df_to_db(df):
 
     except psycopg2.Error:
         logger.exception("ERROR: Unexpected error: Could not connect to PostgreSQL instance.")
-
-
-def lambda_handler(event, context):
-    if 'Records' in event:
-        logger.info('Task triggered by s3 bucket')
-
-        for record in event['Records']:
-            bucket_name = record['s3']['bucket']['name']
-            object_key = record['s3']['object']['key']
-
-            df = read_csv_from_s3(bucket_name, object_key)
-            df_filtered = filter_df(df)
-            write_df_to_s3(df_filtered, object_key)
-            write_df_to_db(df_filtered)
-
-        return {'status': 'ok'}
-
-    else:
-        logger.info('Task triggered by schedule')
-
-        s3 = boto3.client('s3')
-
-        for obj in s3.list_objects(Bucket=INPUT_BUCKET_NAME, Prefix='input-data/')['Contents']:
-            object_key = obj['Key']
-
-            if object_key == 'input-data/':
-                continue
-
-            df = read_csv_from_s3(INPUT_BUCKET_NAME, object_key)
-            df_filtered = filter_df(df)
-            write_df_to_s3(df_filtered, object_key)
-            write_df_to_db(df_filtered)
-
-        return {'status': 'ok'}

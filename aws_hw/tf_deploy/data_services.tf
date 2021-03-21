@@ -7,9 +7,12 @@ terraform {
   }
 }
 
-# Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
+}
+
+locals {
+  lambda_layer_path = "../lambda_layer.zip"
 }
 
 resource "aws_s3_bucket" "input_bucket" {
@@ -32,6 +35,30 @@ resource "aws_s3_bucket" "output_bucket" {
     Name = "Output bucket"
     Environment = "Dev"
   }
+}
+
+resource "aws_s3_bucket" "lambda_libs_bucket" {
+  bucket = var.lambda_libs_bucket
+  acl = "private"
+  force_destroy = "true"
+
+  tags = {
+    Name = "Libs bucket"
+    Environment = "Dev"
+  }
+}
+
+data "archive_file" "lambda_layer_zip" {
+  type        = "zip"
+  source_dir = "../lambda_layer"
+  output_path = local.lambda_layer_path
+}
+
+resource "aws_s3_bucket_object" "layer_zip" {
+  bucket = aws_s3_bucket.lambda_libs_bucket.id
+  key = var.lambda_layer_zip_name
+  acl = "private"
+  source = local.lambda_layer_path
 }
 
 resource "aws_default_vpc" "default" {

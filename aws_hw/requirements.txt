@@ -1,0 +1,5 @@
+pytz
+pandas
+numpy
+psycopg2_binary
+pyarrow
