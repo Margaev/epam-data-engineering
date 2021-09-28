@@ -28,11 +28,8 @@ def lambda_handler(event, context):
 
         s3 = boto3.client('s3')
 
-        for obj in s3.list_objects(Bucket=utils.INPUT_BUCKET_NAME, Prefix='input-data/')['Contents']:
+        for obj in s3.list_objects(Bucket=utils.INPUT_BUCKET_NAME)['Contents']:
             object_key = obj['Key']
-
-            if object_key == 'input-data/':
-                continue
 
             df = utils.read_csv_from_s3(utils.INPUT_BUCKET_NAME, object_key)
             df_filtered = utils.filter_df(df)

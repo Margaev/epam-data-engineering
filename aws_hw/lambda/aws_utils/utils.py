@@ -61,16 +61,20 @@ def write_df_to_db(df):
         logger.info("SUCCESS: Connection to RDS PostgreSQL instance succeeded")
 
         with conn.cursor() as cur:
-            cur.execute("""create table if not exists books (
-                               id int,
-                               name  text,
-                               author text,
-                               user_rating real,
-                               reviews int,
-                               price real,
-                               year int,
-                               genre text
-                            )""")
+            cur.execute(
+                """
+                create table if not exists books (
+                    id int,
+                    name  text,
+                    author text,
+                    user_rating real,
+                    reviews int,
+                    price real,
+                    year int,
+                    genre text
+                )
+                """
+            )
 
             tmp_file = StringIO()
             df.to_csv(tmp_file, header=False)

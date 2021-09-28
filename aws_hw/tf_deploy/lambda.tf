@@ -43,7 +43,10 @@ resource "aws_lambda_layer_version" "lambda_layer" {
   s3_bucket = var.lambda_libs_bucket
   s3_key = var.lambda_layer_zip_name
   compatible_runtimes = ["python3.8"]
-  depends_on = [aws_s3_bucket.lambda_libs_bucket]
+  depends_on = [
+    aws_s3_bucket.lambda_libs_bucket,
+    aws_s3_bucket_object.layer_zip
+  ]
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
