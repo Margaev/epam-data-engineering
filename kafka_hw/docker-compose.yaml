@@ -70,15 +70,13 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+      - postgres
     ports:
       - 8083:8083
     networks:
       - kafka-cluster-tier
     healthcheck:
       test: ["CMD-SHELL", "curl http://kafka-connect-source:8083/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     environment:
       REST_PORT: 8083
       BOOTSTRAP_SERVERS: kafka-1:9092
@@ -106,9 +104,6 @@ services:
       POSTGRES_PASSWORD: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   kafka-connect-sink:
     image: confluentinc/cp-kafka-connect:5.4.3
@@ -117,6 +112,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+      - es
     ports:
       - 8084:8084
     networks:

@@ -12,6 +12,7 @@ producer = KafkaProducer(bootstrap_servers=['kafka-1:9092', 'kafka-2:9092', 'kaf
 for msg in consumer:
     json_data = json.loads(msg.value)
     data = json_data['payload']['after']
+    print(json.dumps(data, indent=4))
 
     if data['type'] == '3':
         data['address'] = fake.address()
